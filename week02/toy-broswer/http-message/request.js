@@ -1,3 +1,5 @@
+const BLambda = require('../util/b-lambda');
+
 const CONTENT_TYPE = 'Content-Type';
 const CONTENT_LENGTH = 'Content-Length';
 
@@ -9,12 +11,6 @@ const METHODS = {
 const DEFAULT_PORT = 80;
 
 const DEFAULT_PATH = '/';
-
-const pipeline = (...fns) => (...args) => {
-	return fns.reduce((result, cur, index) => {
-		return index === 0 ? cur(...args) : cur(result);
-	}, args);
-};
 
 const processBasicConfig = config => {
 	const {
@@ -36,7 +32,8 @@ const processBasicConfig = config => {
 		path
 	};
 };
-const processInner = config => {
+
+const processHeaderAndBody = config => {
 	const { headers = {}, body = {} } = config;
 	let body_text = '';
 
@@ -63,6 +60,6 @@ const processInner = config => {
 };
 
 const gennerateHttpRequest = config =>
-	pipeline(processBasicConfig, processInner)(config);
+	BLambda.pipeline(processBasicConfig, processHeaderAndBody)(config);
 
-console.log(gennerateHttpRequest({ host: '127.0.0.1' }));
+module.exports = gennerateHttpRequest;
