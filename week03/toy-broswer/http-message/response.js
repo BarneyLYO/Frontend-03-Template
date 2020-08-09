@@ -43,7 +43,6 @@ class Parser {
 
 	receiveChar(char) {
 		let state = Parser.STATE;
-
 		switch (this.current) {
 			case state.WAITING_STATUS_LINE:
 				if (char === '\r') {
