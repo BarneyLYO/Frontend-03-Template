@@ -81,7 +81,6 @@ ${this.bodyText}`;
 			conn.on('data', data => {
 				parser.receive(data.toString());
 				if (parser.isFinished) {
-					console.log('finished', parser);
 					res(parser.response);
 					conn.end();
 				}
