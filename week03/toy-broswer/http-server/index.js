@@ -14,8 +14,7 @@ body div img{
 }
 </style>
 </head>
-</html>
-`;
+</html>`;
 
 const CONTENT_TYPE = {
 	name: 'Content-Type',

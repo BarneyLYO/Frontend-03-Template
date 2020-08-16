@@ -1,0 +1,13 @@
+{
+	"name": "toy-broswer",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"server": "node ./http-server/index.js",
+		"client": "node ./http-client/index.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC"
+}
