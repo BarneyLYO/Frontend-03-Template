@@ -17,7 +17,7 @@ void (async function() {
 
 	let response = await request.send();
 	let dom = Parser.parseHTML(response.body);
-	//traverse(dom);
+	traverse(dom);
 })();
 
 function traverse(el) {
