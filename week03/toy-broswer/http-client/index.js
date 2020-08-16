@@ -1,6 +1,6 @@
 const Net = require('net');
 const Request = require('../http-message/request');
-const Parser = require('../html/parser');
+const Parser = require('../html/');
 
 void (async function() {
 	let request = new Request({
@@ -17,4 +17,5 @@ void (async function() {
 
 	let response = await request.send();
 	let dom = Parser.parseHTML(response.body);
+	console.log(dom);
 })();

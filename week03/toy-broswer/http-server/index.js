@@ -5,15 +5,26 @@ const PORT = process.env.PORT || 8888;
 const TEMPLATE_HTML = `<html maaa="a">
 <head b='aaaa'>  
 <style a="adasd">
-body div #myid{
+body{
 	width:100px;
 	background-color:#ff5000;
 }
-body div img{
+body div{
 	width:30px;
+}
+
+#myid{
+	width:100px;
+}
+
+.a{
+	height:1px;
 }
 </style>
 </head>
+<body>
+	<div class='a' id="myid"></div>
+</body>
 </html>`;
 
 const CONTENT_TYPE = {
