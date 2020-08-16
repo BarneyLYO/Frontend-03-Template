@@ -7,7 +7,6 @@ const SINGLE_QUOTE = `\'`;
 
 let currentToken = null;
 let currentAttribute = null;
-let currentTextNode = null;
 
 function data(c) {
 	if (c === '<') {
@@ -16,23 +15,17 @@ function data(c) {
 	}
 	//
 	else if (c === EOF) {
-		emit(
-			{
-				type: 'EOF'
-			},
-			currentTextNode
-		);
+		emit({
+			type: 'EOF'
+		});
 		return;
 	}
 	//
 	else {
-		emit(
-			{
-				type: 'text',
-				content: c
-			},
-			currentTextNode
-		);
+		emit({
+			type: 'text',
+			content: c
+		});
 		return data;
 	}
 }
@@ -91,7 +84,7 @@ function tagName(c) {
 	}
 	//
 	else if (c === '>') {
-		emit(currentToken, currentTextNode);
+		emit(currentToken);
 		return data;
 	}
 	//
@@ -159,7 +152,7 @@ function beforeAttributeValue(c) {
 	}
 	//
 	else if (c === '>') {
-		console.log('before attributes', c);
+		//console.log('before attributes', c);
 	}
 	//
 	else {
@@ -216,7 +209,7 @@ function afterQuotedAttributeValue(c) {
 	//
 	else if (c === '>') {
 		currentToken[currentAttribute.name] = currentAttribute.value;
-		emit(currentToken, currentTextNode);
+		emit(currentToken);
 		return data;
 	}
 	//
@@ -242,7 +235,7 @@ function UnquotedAttributeValue(c) {
 	//
 	else if (c === '>') {
 		currentToken[currentAttribute.name] = currentAttribute.value;
-		emit(currentToken, currentTextNode);
+		emit(currentToken);
 		return data;
 	}
 	//

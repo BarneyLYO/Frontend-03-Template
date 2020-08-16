@@ -20,10 +20,15 @@ body div{
 .a{
 	height:1px;
 }
+
+div > a#myid {}
+
 </style>
 </head>
 <body>
-	<div class='a' id="myid"></div>
+	<div class='a'>
+		<a id="myid">sadasdsa</a>
+	</div>
 </body>
 </html>`;
 

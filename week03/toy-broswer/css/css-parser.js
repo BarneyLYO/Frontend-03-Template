@@ -29,7 +29,6 @@ function computeCSS(element, dom) {
 		if (j >= selectorParts.length) {
 			matched = true;
 		}
-
 		if (matched) {
 			let sp = specificity(rule.selectors[0]);
 			let computed_style = element.computedStyle;
@@ -51,7 +50,7 @@ function computeCSS(element, dom) {
 					computed_style[declaration.property].specificity = sp;
 				}
 			}
-			console.log(element.computedStyle);
+			//console.log(element.computedStyle);
 		}
 	}
 }

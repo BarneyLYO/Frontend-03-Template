@@ -17,5 +17,12 @@ void (async function() {
 
 	let response = await request.send();
 	let dom = Parser.parseHTML(response.body);
-	console.log(dom);
+	//traverse(dom);
 })();
+
+function traverse(el) {
+	if (!el || !el.children || !el.children.length) return;
+	console.log(el);
+	const { children } = el;
+	children.forEach(traverse);
+}

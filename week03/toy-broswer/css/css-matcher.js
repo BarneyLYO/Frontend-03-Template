@@ -1,3 +1,10 @@
+/**
+ * <compound-selector> = [<type-selector>? <class-selector>* [<pseudo-element-selector> <pseudo-class-selector>* ]*
+ */
+// const REGEX_COMPOUND_SELECTOR = /\w+((\.\w+))*(\#\w+)|\w+((\.\w+))+(\#\w+)?|(\.\w+){2,}|(\.\w+)+(\#\w+)/;
+// const REGEX_MULTI_CLASS_SELECTOR = /(\.\w+)/g;
+// const REGEX_ID_SELECTOR = /(\#\w+)/;
+
 function match(element, selector) {
 	if (!selector || !element.attributes) return false;
 	let attr_list;

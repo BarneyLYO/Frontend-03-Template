@@ -1,7 +1,9 @@
 const { addCssRules, computeCSS } = require('../css');
 let stack = [{ type: 'document', children: [] }];
 
-function emit(token, currentTextNode) {
+let currentTextNode = null;
+
+function emit(token) {
 	let top = stack[stack.length - 1];
 
 	if (token.type === 'startTag') {

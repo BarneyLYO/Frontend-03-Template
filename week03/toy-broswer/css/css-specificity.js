@@ -2,21 +2,47 @@
 //div div #id => [0,1,0,2]
 //div #my #id => [0,2,0,1]
 //if higher position can be compare we donr think about the lower position
+
+const REGEX_COMBINED = /[a-zA-Z]{1}[a-zA-Z0-9]*|\.[a-zA-Z]{1}[a-zA-Z0-9]*|#[a-zA-Z0-9]+/g;
+
+function specifyCompound(sub, p) {
+	sub.forEach(rule => {
+		switch (rule.charAt(0)) {
+			case '#':
+				p[1] += 1;
+				break;
+			case '.':
+				p[2] += 1;
+				break;
+			default:
+				p[3] += 1;
+				break;
+		}
+	});
+}
+
+function specifySimple(selector, p) {}
+
 function specificity(selector) {
 	let p = [0, 0, 0, 0];
 	let selector_parts = selector.split(' ');
 
 	for (let part of selector_parts) {
-		if (part.charAt(0) === '#') {
-			p[1] += 1;
-		}
-		//
-		else if (part.charAt(0) === '.') {
-			p[2] += 1;
-		}
-		//
-		else {
-			p[3] += 1;
+		const sub = part.match(REGEX_COMBINED);
+		if (Array.isArray(sub) && sub.length) {
+			specifyCompound(sub, p);
+		} else {
+			if (part.charAt(0) === '#') {
+				p[1] += 1;
+			}
+			//
+			else if (part.charAt(0) === '.') {
+				p[2] += 1;
+			}
+			//
+			else {
+				p[3] += 1;
+			}
 		}
 	}
 	return p;
