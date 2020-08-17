@@ -59,3 +59,6 @@ layout 发生在标签的结束标签之前， before stack pop ，
 ```
 Assertion failed: (status == napi_ok), function New, file ../src/Image.cc, line 282.
 ```
+
+绘制需要依赖图形环境， 更具给予的 viewport 大小进行绘制， 采用递归调用子元素的绘制方法完成 DOM 树的绘制，实际上
+在阅览器中，文字绘制是真正的难点，需要依赖字体库。同时浏览器会对图层 z-index 做 compositing。
