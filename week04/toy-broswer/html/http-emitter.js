@@ -1,6 +1,7 @@
 const { addCssRules, computeCSS } = require('../css');
-let stack = [{ type: 'document', children: [] }];
+const layout = require('../layout');
 
+let stack = [{ type: 'document', children: [] }];
 let currentTextNode = null;
 
 function emit(token) {
@@ -45,6 +46,7 @@ function emit(token) {
 			if (top.tagName === 'style') {
 				addCssRules(top.children[0].content);
 			}
+			layout(top);
 			stack.pop();
 		}
 		currentTextNode = null;

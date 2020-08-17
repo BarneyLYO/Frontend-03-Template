@@ -2,35 +2,34 @@ const Http = require('http');
 
 const PORT = process.env.PORT || 8888;
 
-const TEMPLATE_HTML = `<html maaa="a">
-<head b='aaaa'>  
-<style a="adasd">
-body{
-	width:100px;
-	background-color:#ff5000;
-}
-body div{
-	width:30px;
-}
-
-#myid{
-	width:100px;
-}
-
-.a{
-	height:1px;
-}
-
-div > a#myid {}
-
-</style>
-</head>
-<body>
-	<div class='a'>
-		<a id="myid">sadasdsa</a>
-	</div>
-</body>
-</html>`;
+const TEMPLATE_HTML = `<html>
+        <head>
+          <style>
+          #container{
+            width:500px;
+            height:300px;
+            display:flex;
+            background-color:rgb(255,255,255)
+          }
+          #container #myid{
+            width:200px;
+            height:100px;
+            background-color:rgb(255,0,0)
+          }
+          #container .c1{
+            flex:1;
+            background-color:rgb(0,255,0)
+          }
+          </style>
+        </head>
+        <body>
+          <div id="container">
+            <div id="myid"></div>
+            <div class="c1"></div>
+          </div>
+        </body>
+      </html>
+      `;
 
 const CONTENT_TYPE = {
 	name: 'Content-Type',
