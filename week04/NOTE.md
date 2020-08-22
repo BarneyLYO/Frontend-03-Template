@@ -54,7 +54,7 @@ layout 发生在标签的结束标签之前， before stack pop ，
  yarn add images
 ```
 
-但是我的 node 跑不起来， 过分
+但是我的 node 跑不起来， 过分(跑不起来的原因是在 getStyle 函数获取 element 元素的 style 时候应该是 value.value)
 
 ```
 Assertion failed: (status == napi_ok), function New, file ../src/Image.cc, line 282.

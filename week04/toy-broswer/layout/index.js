@@ -1,11 +1,14 @@
 function getStyle(element) {
 	if (!element.style) element.style = {};
-	for (var prop in element.computedStyle) {
-		var p = element.computedStyle.value;
-		element.style[prop] = element.computedStyle[prop].value;
+
+	for (let prop in element.computedStyle) {
+		//let p = element.computedStyle.value;  No need
+
+		element.style[prop] = element.computedStyle[prop].value.value;
 		if (element.style[prop].toString().match(/px$/)) {
 			element.style[prop] = parseInt(element.style[prop]);
 		}
+
 		if (element.style[prop].toString().match(/^[0-9\.]+$/)) {
 			element.style[prop] = parseInt(element.style[prop]);
 		}
@@ -13,21 +16,7 @@ function getStyle(element) {
 	return element.style;
 }
 
-function layout(element) {
-	if (!element.computedStyle) return;
-
-	var elementStyle = getStyle(element);
-
-	if (elementStyle.display !== 'flex') return;
-
-	var items = element.children.filter(e => e.type === 'element');
-
-	items.sort(function(a, b) {
-		return (a.order || 0) - (b.order || 0);
-	});
-
-	var style = elementStyle;
-
+function preConfigFlexProperty(style) {
 	['width', 'height'].forEach(size => {
 		if (style[size] === 'auto' || style[size] === '') {
 			style[size] = null;
@@ -43,8 +32,14 @@ function layout(element) {
 		style.alignContent = 'stretch';
 	if (!style.alignItems || style.alignItems === 'auto')
 		style.alignItems = 'stretch';
+}
 
-	var mainSize,
+function defineFlexProperty(style) {
+	/**
+	 * TODO:
+	 * Personally I dont think define tons of varaible is good way to go
+	 */
+	let mainSize,
 		mainStart,
 		mainEnd,
 		mainSign,
@@ -115,47 +110,62 @@ function layout(element) {
 		crossSign = 1;
 	}
 
-	var isAutoMainSize = false;
-	if (!style[mainSize]) {
-		elementStyle[mainSize] = 0;
-		for (var i = 0; i < items.length; i++) {
-			var item = items[i];
-			var itemStyle = getStyle(item);
-			if (itemStyle[mainSize] !== null || itemStyle[mainSize]) {
-				elementStyle[mainSize] = elementStyle[mainSize] + itemStyle[mainSize];
-			}
+	return {
+		mainSize,
+		mainStart,
+		mainEnd,
+		mainSign,
+		mainBase,
+		crossSize,
+		crossStart,
+		crossEnd,
+		crossSign,
+		crossBase
+	};
+}
+
+function processAutoMainSize(style, elementStyle, items, mainSize) {
+	if (style[mainSize]) return false;
+
+	elementStyle[mainSize] = 0;
+	for (let i = 0; i < items.length; i++) {
+		let item = items[i];
+		let itemStyle = getStyle(item);
+		if (itemStyle[mainSize] !== null || itemStyle[mainSize]) {
+			elementStyle[mainSize] = elementStyle[mainSize] + itemStyle[mainSize];
 		}
-		isAutoMainSize = true;
 	}
+	return true;
+}
 
-	var flexLine = [];
-	var flexLines = [flexLine];
-	var mainSpace = elementStyle[mainSize];
-	var crossSpace = 0;
+function collectElementIntoRow(style, items, isAutoMainSize, config) {
+	const { mainSize, crossSize } = config;
 
-	for (var i = 0; i < items.length; i++) {
-		var item = items[i];
-		var itemStyle = getStyle(item);
+	let flexLine = [];
+	let flexLines = [flexLine];
+	let mainSpace = style[mainSize];
+	let crossSpace = 0;
 
-		if (itemStyle[mainSize] === null || itemStyle[mainSize] === void 0)
-			itemStyle[mainSize] = 0;
+	items.forEach((item, i) => {
+		let itemStyle = getStyle(item);
 
-		if (itemStyle.flex) {
-			flexLine.push(item);
-		}
+		if (!itemStyle[mainSize]) itemStyle[mainSize] = 0;
+
+		if (itemStyle.flex) flexLine.push(item);
 		//
 		else if (style.flexWrap === 'nowrap' && isAutoMainSize) {
 			mainSpace -= itemStyle[mainSize];
-			if (itemStyle[crossSize] !== null && itemStyle[crossSize] !== void 0) {
+
+			if (itemStyle[crossSize])
 				crossSpace = Math.max(crossSpace, itemStyle[crossSize]);
-			}
+
 			flexLine.push(item);
 		}
 		//
 		else {
-			if (itemStyle[mainSize] > style[mainSize]) {
+			if (itemStyle[mainSize] > style[mainSize])
 				itemStyle[mainSize] = style[mainSize];
-			}
+
 			if (mainSpace < itemStyle[mainSize]) {
 				flexLine.mainSpace = mainSpace;
 				flexLine.crossSpace = crossSpace;
@@ -169,24 +179,77 @@ function layout(element) {
 				flexLine.push(item);
 			}
 
-			if (itemStyle[crossSize] !== null && itemStyle[crossSize] !== void 0) {
+			if (!itemStyle[crossSize])
 				crossSapce = Math.max(crossSpace, itemStyle[crossSize]);
-			}
-
 			mainSpace -= itemStyle[mainSize];
 		}
-	}
-
+	});
 	flexLine.mainSpace = mainSpace;
-	// 计算主轴方向剩余空间
-	if (style.flexWrap === 'nowrap' || isAutoMainSize) {
-		flexLine.crossSpace =
+
+	return { flexLine, flexLines, mainSpace, crossSpace };
+}
+
+function predefineCrossSpace(
+	style,
+	flexLine,
+	isAutoMainSize,
+	crossSpace,
+	crossSize
+) {
+	if (style.flexWrap === 'nowrap' || isAutoMainSize)
+		flexLine.crossSapce =
 			style[crossSize] !== void 0 ? style[crossSize] : crossSpace;
-	}
 	//
-	else {
-		flexLine.crossSpace = crossSpace;
-	}
+	else flexLine.crossSpace = crossSpace;
+}
+
+function layout(element) {
+	if (!element.computedStyle) return;
+
+	let elementStyle = getStyle(element);
+	if (elementStyle.display !== 'flex') return;
+
+	let items = element.children.filter(e => e.type === 'element');
+
+	items.sort(function(a, b) {
+		return (a.order || 0) - (b.order || 0);
+	});
+
+	let style = elementStyle;
+
+	preConfigFlexProperty(style);
+
+	let {
+		mainSize,
+		mainStart,
+		mainEnd,
+		mainSign,
+		mainBase,
+		crossSize,
+		crossStart,
+		crossEnd,
+		crossSign,
+		crossBase
+	} = defineFlexProperty(style);
+
+	let isAutoMainSize = processAutoMainSize(
+		style,
+		elementStyle,
+		items,
+		mainSize
+	);
+
+	let { flexLine, flexLines, mainSpace, crossSpace } = collectElementIntoRow(
+		style,
+		items,
+		isAutoMainSize,
+		{
+			mainSize,
+			crossSize
+		}
+	);
+
+	predefineCrossSpace(style, flexLine, isAutoMainSize, crossSpace, crossSize);
 
 	if (mainSpace < 0) {
 		var scale = style[mainSize] / (style[mainSize] - mainSpace);
@@ -270,7 +333,6 @@ function layout(element) {
 		});
 	}
 	// 计算交叉轴尺寸
-	var crossSpace;
 	if (!style[crossSize]) {
 		crossSpace = 0;
 		elementStyle[crossSize] = 0;
@@ -328,6 +390,7 @@ function layout(element) {
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			var itemStyle = getStyle(item);
+
 			var align = itemStyle.alignSelf || style.alignItems;
 			if (itemStyle[crossSize] === null || itemStyle[crossSize] === void 0) {
 				itemStyle[crossSize] = align === 'stretch' ? lineCrossSize : 0;
