@@ -117,13 +117,90 @@
 				}
 			}
 
+			class Heap {
+				constructor(data, comparator = (a, b) => a - b) {
+					this.data = data;
+					if (this.data.length === 1) {
+						this.data = [null, ...this.data];
+					}
+					this.comparator = comparator;
+				}
+				_swap(a, b) {
+					const data = this.data;
+					const temp = data[a];
+					data[a] = temp;
+					data[b] = data[a];
+				}
+
+				_swim(i) {
+					const { comparator } = this;
+					const data = this.data;
+					const father = i >> 1;
+					if (father >= 1 && comparator(data[i], data[father]) < 0) {
+						this._swap(i, father);
+						//the target element has become the father element
+						this._swim(father);
+					}
+				}
+
+				_sink(i) {
+					const { comparator } = this;
+					const data = this.data;
+					const left_child = i << 1;
+					const right_child = i + 1;
+
+					let small = i;
+
+					if (
+						left_child < data.length &&
+						comparator(data[small], data[left_child]) > 0
+					) {
+						small = left_child;
+					}
+
+					if (
+						right_child < data.length &&
+						comparator(data[small], data[right_child]) > 0
+					) {
+						small = right_child;
+					}
+
+					if (small !== i) {
+						this._swap(small, i);
+						this._sink(small);
+					}
+				}
+
+				push(v) {
+					this.data.push(v);
+					this._swim(this.data.length - 1);
+				}
+
+				shift() {
+					if (!this.data.length) return;
+
+					let data = this.data;
+
+					const result = data[1];
+
+					this._swap(1, data.length - 1);
+					this._sink(1);
+
+					return result;
+				}
+
+				get length() {
+					return this.data.length;
+				}
+			}
+
 			const findPath = (function(map) {
 				return async (start, end) => {
 					const distance = (end => point =>
 						(point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2)(end);
 
 					let table = Object.create(map);
-					let queue = new Sorted([start], (a, b) => distance(a) - distance(b));
+					let queue = new Heap([start], (a, b) => distance(a) - distance(b));
 					let dead_end = new Map();
 
 					const adjustDeadEnd = pre => {
