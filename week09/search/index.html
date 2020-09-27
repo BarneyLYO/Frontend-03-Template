@@ -1,0 +1,193 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+		<style>
+			.cell {
+				display: inline-block;
+				line-height: 7px;
+
+				width: 6px;
+				height: 6px;
+
+				background-color: gray;
+
+				border-bottom: solid 1px white;
+				border-right: solid 1px white;
+
+				vertical-align: middle;
+			}
+
+			#container {
+				width: 701px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="container"></div>
+		<button onclick='localStorage["map"] = JSON.stringify(map)'>save</button>
+		<script>
+			let mousedown = false;
+			let clear = false;
+			let map = localStorage['map']
+				? JSON.parse(localStorage['map'])
+				: Array(10000).fill(0);
+
+			const container = document.querySelector('#container');
+
+			const sleep = t => new Promise(resolve => setTimeout(resolve, t));
+
+			const createCell = (map, x, y) => {
+				let cell = document.createElement('div');
+				cell.classList.add('cell');
+
+				if (map[100 * y + 1] === 1) cell.style.backgroundColor = 'black';
+
+				cell.addEventListener('mousemove', () => {
+					if (mousedown) {
+						if (clear) {
+							cell.style.backgroundColor = '';
+							map[100 * y + x] = 0;
+						}
+						//
+						else {
+							cell.style.backgroundColor = 'black';
+							map[100 * y + x] = 1;
+						}
+					}
+				});
+
+				return cell;
+			};
+
+			//inital cells
+			{
+				for (let y = 0; y < 100; y++) {
+					for (let x = 0; x < 100; x++) {
+						container.appendChild(createCell(map, x, y));
+					}
+				}
+			}
+
+			//create event listeners
+			{
+				document.addEventListener('mousedown', e => {
+					mousedown = true;
+					//e.which => which key you are using
+					clear = e.which === 3;
+				});
+
+				document.addEventListener('mouseup', e => (mousedown = false));
+				//不弹出菜单
+				document.addEventListener('contextmenu', e => e.preventDefault());
+			}
+
+			class Sorted {
+				constructor(data, comparator = (a, b) => a - b) {
+					this.data = data.slice(); //copy data
+					this.comparator = comparator;
+				}
+
+				get length() {
+					return this.data.length;
+				}
+
+				shift() {
+					if (!this.data.length) return;
+
+					let min = this.data[0];
+					let min_id = 0;
+					this.data.forEach((element, id) => {
+						if (this.comparator(element, min) < 0) {
+							min = element;
+							min_id = id;
+						}
+					});
+					//put the minimum at end of arr
+					this.data[min_id] = this.data[this.data.length - 1];
+					this.data.pop();
+					return min;
+				}
+
+				push(v) {
+					//give rename to dont need to change the underneath code
+					this.data.push(v);
+				}
+			}
+
+			const findPath = (function(map) {
+				return async (start, end) => {
+					const distance = (end => point =>
+						(point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2)(end);
+
+					let table = Object.create(map);
+					let queue = new Sorted([start], (a, b) => distance(a) - distance(b));
+					let dead_end = new Map();
+
+					const adjustDeadEnd = pre => {
+						const pre_str = pre.toString();
+						if (dead_end.has(pre_str)) {
+							const times = dead_end.get(pre_str);
+							dead_end.set(pre_str, times + 1);
+						} else {
+							dead_end.set(pre_str, 1);
+						}
+					};
+
+					const insert = async (x, y, pre) => {
+						//out boundary
+						if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+						//hit wall or visited
+						if (table[100 * y + x]) return adjustDeadEnd(pre);
+
+						//childrenNode 不能有文本换行
+						await sleep(10);
+						container.children[100 * y + x].style.backgroundColor = 'green';
+						table[y * 100 + x] = pre;
+						queue.push([x, y]);
+					};
+
+					while (queue.length) {
+						let [x, y] = queue.shift();
+						//console.log(x, y);
+						if (x === end[0] && y === end[1]) {
+							let path = [];
+							container.children[100 * y + x].style.backgroundColor = 'yellow';
+
+							while (x !== start[0] || y !== start[1]) {
+								path.push(map[100 * y + x]);
+								[x, y] = table[100 * y + x];
+								await sleep(1);
+								container.children[100 * y + x].style.backgroundColor = 'red';
+							}
+
+							return path;
+						}
+
+						const point = [x, y];
+						const point_str = point.toString();
+
+						//we has up/down/right/left/up-left/up-right/down-left/down-right
+						const is_bad_point = dead_end.has(point_str)
+							? dead_end.get(point_str) >= 6
+							: false;
+						if (!is_bad_point) {
+							await insert(x - 1, y, point); // left
+							await insert(x, y - 1, point); // up
+							await insert(x + 1, y, point); // right
+							await insert(x, y + 1, point); //down
+
+							await insert(x - 1, y - 1, point);
+							await insert(x + 1, y - 1, point);
+							await insert(x - 1, y + 1, point);
+							await insert(x + 1, y + 1, point);
+						}
+					}
+					return null;
+				};
+			})(map);
+		</script>
+	</body>
+</html>
