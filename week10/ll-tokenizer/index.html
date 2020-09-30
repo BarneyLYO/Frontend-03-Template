@@ -1,0 +1,212 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script>
+			/*
+			       ReGex inner structure from below:
+			       [
+			         whole match result,
+			         ([0-9\.]+) result,
+			         ([ \t]+) result,
+			         ([\r\n]+) result,
+			         (\*) result,
+			         (\/) result,
+			         (\+) result,
+			         (\-) result,
+			         index, //last index
+			         input,
+			         group
+			       ]
+
+			       () measn capture
+			     */
+			const REGEX = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+			const DICT = [
+				'Number',
+				'WhiteSpace',
+				'LineTerminator',
+				'*',
+				'/',
+				'+',
+				'-'
+			];
+
+			function* tokenize(source) {
+				let result = null;
+				let last_index = 0;
+
+				while (true) {
+					last_index = REGEX.lastIndex;
+
+					if ((result = REGEX.exec(source)) === null) break;
+
+					if (REGEX.lastIndex - last_index > result[0].length) break;
+
+					let token = {
+						type: null,
+						value: null
+					};
+
+					for (let i = 1; i <= DICT.length; i++) {
+						result[i] && (token.type = DICT[i - 1]);
+					}
+					token.value = result[0];
+					yield token;
+				}
+
+				token = {
+					type: 'EOF',
+					value: void 0
+				};
+				yield token;
+			}
+
+			function multiplicativeExpression(source) {
+				if (source[0].type === 'Number') {
+					let node = {
+						type: 'MultiplicativeExpression',
+						children: [source[0]]
+					};
+					source[0] = node;
+					return multiplicativeExpression(source);
+				}
+
+				if (
+					source[0].type === 'MultiplicativeExpression' &&
+					source[1] &&
+					source[1].type === '*'
+				) {
+					let node = {
+						type: 'MultiplicativeExpression',
+						operator: '*',
+						children: []
+					};
+
+					node.children.push(source.shift());
+					node.children.push(source.shift());
+					node.children.push(source.shift());
+					source.unshift(node);
+					return multiplicativeExpression(source);
+				}
+
+				if (
+					source[0].type === 'MultiplicativeExpression' &&
+					source[1] &&
+					source[1].type === '/'
+				) {
+					let node = {
+						type: 'MultiplicativeExpression',
+						operator: '/',
+						children: []
+					};
+
+					node.children.push(source.shift());
+					node.children.push(source.shift());
+					node.children.push(source.shift());
+					source.unshift(node);
+					return multiplicativeExpression(source);
+				}
+
+				if (source[0].type === 'MultiplicativeExpression') return source[0];
+
+				return multiplicativeExpression(source);
+			}
+
+			function additiveExpression(source) {
+				if (source[0].type === 'MultiplicativeExpression') {
+					let node = {
+						type: 'AdditiveExpression',
+						children: [source[0]]
+					};
+					source[0] = node;
+					return additiveExpression(source);
+				}
+
+				if (
+					source[0].type === 'AdditiveExpression' &&
+					source[1] &&
+					source[1].type === '+'
+				) {
+					let node = {
+						type: 'AdditiveExpression',
+						operator: '+',
+						children: []
+					};
+					node.children.push(source.shift());
+					node.children.push(source.shift());
+					multiplicativeExpression(source); //process the un-terminated symbol
+					node.children.push(source.shift());
+					source.unshift(node);
+					return additiveExpression(source);
+				}
+
+				if (
+					source[0].type === 'AdditiveExpression' &&
+					source[1] &&
+					source[1].type === '-'
+				) {
+					let node = {
+						type: 'AdditiveExpression',
+						operator: '-',
+						children: []
+					};
+					node.children.push(source.shift());
+					node.children.push(source.shift());
+					multiplicativeExpression(source); //process the un-terminated symbol
+					node.children.push(source.shift());
+					source.unshift(node);
+					return additiveExpression(source);
+				}
+
+				if (source[0].type === 'AdditiveExpression') return source[0];
+
+				//unkown stuff, trying to process the terminator
+				multiplicativeExpression(source);
+				return additiveExpression(source);
+			}
+
+			function expression(tokens) {
+				if (
+					tokens[0].type === 'AdditiveExpression' &&
+					tokens[1] &&
+					tokens[1].type === 'EOF'
+				) {
+					let node = {
+						type: 'Expression',
+						children: [tokens.shift(), tokens.shift()]
+					};
+					tokens.unshift(node);
+					return node;
+				}
+				additiveExpression(tokens);
+				return expression(tokens);
+			}
+
+			const tokenConsumer = (function(consume) {
+				let source = [];
+				return token =>
+					token.type !== 'EOF'
+						? source.push(token)
+						: (source.push(token), consume(source));
+			})(expression);
+
+			const process = ((tokenizer, token_taker) => input => {
+				for (let token of tokenizer(input)) {
+					if (token.type === 'WhiteSpace') continue;
+					let source = token_taker(token);
+					if (source && typeof source !== 'number') {
+						console.log(source);
+					}
+				}
+			})(tokenize, tokenConsumer);
+
+			process('1024+ 10 * 5');
+		</script>
+	</body>
+</html>
