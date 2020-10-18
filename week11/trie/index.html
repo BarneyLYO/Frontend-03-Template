@@ -1,0 +1,65 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+		<script>
+			const $ = Symbol('$'); //截止符号
+			class Trie {
+				// can also use to be find the max interger
+				constructor() {
+					this.root = Object.create(null); //no extra prototype
+				}
+
+				insert(word) {
+					let node = this.root;
+					for (let c of word) {
+						if (!node[c]) node[c] = Object.create(null);
+
+						node = node[c]; //查字典翻到对应的位置
+					}
+					if (!($ in node)) node[$] = 0; //截止符
+
+					node[$]++; //截止符由1开始
+				}
+
+				most() {
+					let max = 0;
+					let maxWord = null;
+					/**
+					 * @param {node:charObj} following encountered char_obj
+					 * @param {word:string} current max len string
+					 */
+					let visit = (node, word) => {
+						if (node[$] && node[$] > max) {
+							max = node[$];
+							maxWord = word;
+						}
+						for (let p in node) visit(node[p], word + p);
+					};
+
+					visit(this.root, '');
+					console.log(maxWord);
+				}
+			}
+
+			function randomWord(len) {
+				let s = '';
+				for (let i = 0; i < len; i++) {
+					s += String.fromCharCode(Math.random() * 26 + 'a'.charCodeAt(0));
+				}
+				return s;
+			}
+
+			let trie = new Trie();
+
+			for (let i = 0; i < 100000; i++) {
+				trie.insert(randomWord(4));
+			}
+			console.log(trie);
+			trie.most();
+		</script>
+	</head>
+	<body></body>
+</html>

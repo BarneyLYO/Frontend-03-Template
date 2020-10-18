@@ -1,0 +1,67 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+		<script>
+			function kmp(source, pattern) {
+				// calcu jump table
+				let jump_table = new Array(pattern.length).fill(0);
+				{
+					// i : index, j:jump location
+					let i = 1,
+						j = 0;
+					while (i < pattern.length) {
+						//matched
+						if (pattern[i] === pattern[j]) {
+							i++;
+							j++;
+							jump_table[i] === j;
+						}
+						//not matched, decide the pre-location
+						else {
+							//find pre-location
+							if (j > 0) {
+								j = jump_table[j];
+							} else {
+								i++; // not find match
+							}
+						}
+					}
+				}
+
+				//match source
+				{
+					/* i: source index, j:pattern index */
+					let i = 0;
+					j = 0;
+					while (i < source.length) {
+						if (pattern[j] === source[i]) {
+							i++, j++;
+						}
+						//
+						else {
+							if (j > 0) {
+								j = jump_table[j];
+							}
+							//
+							else {
+								i++;
+							}
+						}
+						if (j === pattern.length) {
+							return true;
+						}
+					}
+					return false;
+				}
+			}
+
+			console.log(kmp('123123123123', 'aaaaaaaabbbbbb'));
+			console.log(kmp('aaaaaaa', 'aaaaaaa'));
+			console.log(kmp('ababababccc', 'abc'));
+		</script>
+	</head>
+	<body></body>
+</html>
