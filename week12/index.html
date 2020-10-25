@@ -1,0 +1,102 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+		<script>
+			let reactivities = new Map();
+			let cbs = new Map();
+			let usedReactivities = [];
+
+			function reactive(obj) {
+				if (reactivities.has(obj)) return reactivities.get(obj);
+
+				let proxied = new Proxy(obj, {
+					set(obj, prop, val) {
+						obj[prop] = val; //alter the orignal object directly
+						fireReactivityEvent(obj, prop);
+						return obj[prop];
+					},
+					get(obj, prop) {
+						usedReactivities.push([obj, prop]);
+
+						if (typeof obj[prop] === 'object') {
+							return reactive(obj[prop]);
+						}
+
+						return obj[prop];
+					}
+				});
+
+				reactivities.set(obj, proxied);
+				return proxied;
+			}
+
+			function effect(cb) {
+				usedReactivities = [];
+				cb();
+				console.log('u', usedReactivities);
+				for (let reactivity of usedReactivities) {
+					adjustGlobalCb(reactivity, cb);
+				}
+			}
+
+			function adjustGlobalCb(reactivity, callback) {
+				if (!cbs.has(reactivity[0])) {
+					cbs.set(reactivity[0], new Map());
+				}
+				if (!cbs.get(reactivity[0]).has(reactivity[1])) {
+					cbs.get(reactivity[0]).set(reactivity[1], []);
+				}
+				cbs
+					.get(reactivity[0])
+					.get(reactivity[1])
+					.push(callback);
+			}
+
+			function fireReactivityEvent(obj, prop) {
+				if (cbs.has(obj)) {
+					let prop_map = cbs.get(obj);
+					if (prop_map.has(prop)) {
+						let dep_arr = prop_map.get(prop);
+						dep_arr.forEach(cb => {
+							typeof cb === 'function' && cb();
+						});
+					}
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<input id="r" type="range" min="0" max="255" />
+		<input id="g" type="range" min="0" max="255" />
+		<input id="b" type="range" min="0" max="255" />
+		<div id="color" style="width:111px;height:111px"></div>
+
+		<script>
+			let input_obj = {
+				r: 1,
+				g: 1,
+				b: 1
+			};
+
+			let po = reactive(input_obj);
+
+			//two way binding
+			Object.keys(input_obj).forEach(s => {
+				effect(() => (document.getElementById(s).value = po[s]));
+				document
+					.getElementById(s)
+					.addEventListener('input', e => (po[s] = e.target.value));
+			});
+
+			effect(
+				() =>
+					(document.getElementById(
+						'color'
+					).style.backgroundColor = `rgb(${po.r},${po.g},${po.b})`)
+			);
+		</script>
+	</body>
+</html>

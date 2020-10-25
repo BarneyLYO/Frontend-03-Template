@@ -1,0 +1,104 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div id="container">
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+			文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字 文字
+		</div>
+		<div
+			id="dragable"
+			style="display:inline-block;width:100px;height: 100px;background-color:pink;"
+		></div>
+
+		<script>
+			//拖拽骨架
+			let dragable = document.querySelector('#dragable');
+			//记录当前transform的值
+			let base_x = 0,
+				base_y = 0;
+
+			dragable.addEventListener('mousedown', e => {
+				let start_x = e.clientX,
+					start_y = e.clientY;
+
+				let move_listener = e => {
+					// dragable.style.transform = `translate(${base_x +
+					// 	e.clientX -
+					// 	start_x}px,${base_y + e.clientY - start_y}px)`;
+					let range = getNearest(event.clientX, event.clientY);
+					range.insertNode(dragable);
+				};
+
+				let up_listener = e => {
+					base_x = base_x + e.clientX - start_x;
+					base_y = base_y + e.clientY - start_y;
+					document.removeEventListener('mousemove', move_listener);
+					document.removeEventListener('mouseup', up_listener);
+				};
+				//document 会捕捉鼠标,document外依然监听
+				//不在document上监听的话移除范围不响应了
+				document.addEventListener('mousemove', move_listener);
+				document.addEventListener('mouseup', up_listener);
+			});
+
+			let ranges = [];
+			let container = document.getElementById('container');
+			for (let i = 0; i < container.childNodes[0].textContent.length; i++) {
+				let range = document.createRange();
+				range.setStart(container.childNodes[0], i);
+				range.setEnd(container.childNodes[0], i);
+				ranges.push(range);
+			}
+
+			function getNearest(x, y) {
+				let min = Infinity;
+				let nearest = null;
+
+				for (let range of ranges) {
+					let rect = range.getBoundingClientRect();
+					let distance = (rect.x - x) ** 2 + (rect.y - y) ** 2;
+					if (distance < min) {
+						nearest = range;
+						min = distance;
+					}
+				}
+				return nearest;
+			}
+
+			document.addEventListener('selectstart', e => e.preventDefault());
+		</script>
+	</body>
+</html>
