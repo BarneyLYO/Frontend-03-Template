@@ -185,7 +185,10 @@ Data Binding in vue3:
       }
 
       let up_listener = e => {
-        base_x = base_x + e.cli
+        base_x = base_x + e.clientX - start_x;
+				base_y = base_y + e.clientY - start_y;
+				document.removeEventListener('mousemove', move_listener);
+				document.removeEventListener('mouseup', up_listener);
       }
     })
   }
