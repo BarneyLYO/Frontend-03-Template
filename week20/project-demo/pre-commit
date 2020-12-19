@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+let process = require('process');
+
+let child_process = require('child_process');
+let { ESLint } = require('eslint');
+
+function exec(name) {
+	return new Promise(r => {
+		child_process.exec(name, r);
+	});
+}
+
+(async function main() {
+	const eslint = new ESLint({ fix: false });
+
+	await exec('git stash push -k');
+	const result = await eslint.lintFiles(['index.js']);
+	await exec('git stash pop');
+
+	const formatter = await eslint.loadFormatter('stylish');
+	const resultText = formatter.format(result);
+
+	console.log(resultText);
+
+	for (r of result) {
+		if (r.errorCount) {
+			process.exitCode = 1;
+		}
+	}
+})().catch(e => {
+	process.exitCode = 1;
+	console.error(e);
+});
+
+// console.log("hello hooks");
+// process.exit(1);
